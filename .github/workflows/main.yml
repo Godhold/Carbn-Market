@@ -8,10 +8,11 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  BACKEND_IMAGE: ${{ github.repository_owner }}/carbn-market-backend
-  DATABASE_IMAGE: ${{ github.repository_owner }}/carbn-market-database
-  BLOCKCHAIN_IMAGE: ${{ github.repository_owner }}/carbn-market-blockchain
-  MONITORING_IMAGE: ${{ github.repository_owner }}/carbn-market-monitoring
+  OWNER: ${{ github.repository_owner | lower }}
+  BACKEND_IMAGE: carbn-market-backend
+  DATABASE_IMAGE: carbn-market-database
+  BLOCKCHAIN_IMAGE: carbn-market-blockchain
+  MONITORING_IMAGE: carbn-market-monitoring
 
 jobs:
   build-and-test:
@@ -29,33 +30,37 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
     
+    - name: Convert owner to lowercase
+      run: |
+        echo "OWNER_LOWER=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_ENV
+    
     - name: Build and push Backend
       uses: docker/build-push-action@v4
       with:
         context: ./Backend
         push: true
-        tags: ${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE }}:${{ github.sha }}
+        tags: ${{ env.REGISTRY }}/${{ env.OWNER_LOWER }}/${{ env.BACKEND_IMAGE }}:${{ github.sha }}
         
     - name: Build and push Database
       uses: docker/build-push-action@v4
       with:
         context: ./database
         push: true
-        tags: ${{ env.REGISTRY }}/${{ env.DATABASE_IMAGE }}:${{ github.sha }}
+        tags: ${{ env.REGISTRY }}/${{ env.OWNER_LOWER }}/${{ env.DATABASE_IMAGE }}:${{ github.sha }}
         
     - name: Build and push Blockchain
       uses: docker/build-push-action@v4
       with:
         context: ./blockchain
         push: true
-        tags: ${{ env.REGISTRY }}/${{ env.BLOCKCHAIN_IMAGE }}:${{ github.sha }}
+        tags: ${{ env.REGISTRY }}/${{ env.OWNER_LOWER }}/${{ env.BLOCKCHAIN_IMAGE }}:${{ github.sha }}
         
     - name: Build and push Monitoring
       uses: docker/build-push-action@v4
       with:
         context: ./monitoring
         push: true
-        tags: ${{ env.REGISTRY }}/${{ env.MONITORING_IMAGE }}:${{ github.sha }}
+        tags: ${{ env.REGISTRY }}/${{ env.OWNER_LOWER }}/${{ env.MONITORING_IMAGE }}:${{ github.sha }}
 
   deploy:
     needs: build-and-test
@@ -73,13 +78,17 @@ jobs:
         echo "${{ secrets.KUBE_CONFIG }}" > kubeconfig.yml
         export KUBECONFIG=kubeconfig.yml
         
+    - name: Convert owner to lowercase
+      run: |
+        echo "OWNER_LOWER=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_ENV
+        
     - name: Update image tags
       run: |
         cd k8s
-        kustomize edit set image backend=${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE }}:${{ github.sha }}
-        kustomize edit set image database=${{ env.REGISTRY }}/${{ env.DATABASE_IMAGE }}:${{ github.sha }}
-        kustomize edit set image blockchain=${{ env.REGISTRY }}/${{ env.BLOCKCHAIN_IMAGE }}:${{ github.sha }}
-        kustomize edit set image monitoring=${{ env.REGISTRY }}/${{ env.MONITORING_IMAGE }}:${{ github.sha }}
+        kustomize edit set image backend=${{ env.REGISTRY }}/${{ env.OWNER_LOWER }}/${{ env.BACKEND_IMAGE }}:${{ github.sha }}
+        kustomize edit set image database=${{ env.REGISTRY }}/${{ env.OWNER_LOWER }}/${{ env.DATABASE_IMAGE }}:${{ github.sha }}
+        kustomize edit set image blockchain=${{ env.REGISTRY }}/${{ env.OWNER_LOWER }}/${{ env.BLOCKCHAIN_IMAGE }}:${{ github.sha }}
+        kustomize edit set image monitoring=${{ env.REGISTRY }}/${{ env.OWNER_LOWER }}/${{ env.MONITORING_IMAGE }}:${{ github.sha }}
         
     - name: Deploy to Kubernetes
       run: |
