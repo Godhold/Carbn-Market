@@ -8,7 +8,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  OWNER: ${{ github.repository_owner | lower }}
+  OWNER: ${{ github.repository_owner }}
   BACKEND_IMAGE: carbn-market-backend
   DATABASE_IMAGE: carbn-market-database
   BLOCKCHAIN_IMAGE: carbn-market-blockchain
