@@ -34,7 +34,7 @@ jobs:
     - name: Run ESLint
       run: |
         npm install eslint eslint-config-airbnb-base eslint-plugin-import --save-dev
-        npx eslint . --ext .js
+        npx eslint "Backend/**/*.js" "blockchain/**/*.js"
         
     - name: Run tests with coverage
       run: npm test
