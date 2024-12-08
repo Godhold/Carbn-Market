@@ -8,10 +8,10 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  BACKEND_IMAGE: ${{ github.repository }}/backend
-  DATABASE_IMAGE: ${{ github.repository }}/database
-  BLOCKCHAIN_IMAGE: ${{ github.repository }}/blockchain
-  MONITORING_IMAGE: ${{ github.repository }}/monitoring
+  BACKEND_IMAGE: ${{ github.repository_owner }}/carbn-market-backend
+  DATABASE_IMAGE: ${{ github.repository_owner }}/carbn-market-database
+  BLOCKCHAIN_IMAGE: ${{ github.repository_owner }}/carbn-market-blockchain
+  MONITORING_IMAGE: ${{ github.repository_owner }}/carbn-market-monitoring
 
 jobs:
   build-and-test:
@@ -32,30 +32,30 @@ jobs:
     - name: Build and push Backend
       uses: docker/build-push-action@v4
       with:
-        context: ./backend
+        context: ./Backend
         push: true
-        tags: ${{ env.BACKEND_IMAGE }}:${{ github.sha }}
+        tags: ${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE }}:${{ github.sha }}
         
     - name: Build and push Database
       uses: docker/build-push-action@v4
       with:
         context: ./database
         push: true
-        tags: ${{ env.DATABASE_IMAGE }}:${{ github.sha }}
+        tags: ${{ env.REGISTRY }}/${{ env.DATABASE_IMAGE }}:${{ github.sha }}
         
     - name: Build and push Blockchain
       uses: docker/build-push-action@v4
       with:
         context: ./blockchain
         push: true
-        tags: ${{ env.BLOCKCHAIN_IMAGE }}:${{ github.sha }}
+        tags: ${{ env.REGISTRY }}/${{ env.BLOCKCHAIN_IMAGE }}:${{ github.sha }}
         
     - name: Build and push Monitoring
       uses: docker/build-push-action@v4
       with:
         context: ./monitoring
         push: true
-        tags: ${{ env.MONITORING_IMAGE }}:${{ github.sha }}
+        tags: ${{ env.REGISTRY }}/${{ env.MONITORING_IMAGE }}:${{ github.sha }}
 
   deploy:
     needs: build-and-test
@@ -76,10 +76,10 @@ jobs:
     - name: Update image tags
       run: |
         cd k8s
-        kustomize edit set image backend=${{ env.BACKEND_IMAGE }}:${{ github.sha }}
-        kustomize edit set image database=${{ env.DATABASE_IMAGE }}:${{ github.sha }}
-        kustomize edit set image blockchain=${{ env.BLOCKCHAIN_IMAGE }}:${{ github.sha }}
-        kustomize edit set image monitoring=${{ env.MONITORING_IMAGE }}:${{ github.sha }}
+        kustomize edit set image backend=${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE }}:${{ github.sha }}
+        kustomize edit set image database=${{ env.REGISTRY }}/${{ env.DATABASE_IMAGE }}:${{ github.sha }}
+        kustomize edit set image blockchain=${{ env.REGISTRY }}/${{ env.BLOCKCHAIN_IMAGE }}:${{ github.sha }}
+        kustomize edit set image monitoring=${{ env.REGISTRY }}/${{ env.MONITORING_IMAGE }}:${{ github.sha }}
         
     - name: Deploy to Kubernetes
       run: |
